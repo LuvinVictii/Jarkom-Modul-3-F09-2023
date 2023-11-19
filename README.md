@@ -84,30 +84,122 @@ d. Analisis
 >Selanjutnya LB ini hanya boleh diakses oleh client dengan IP \[Prefix IP].3.69, \[Prefix IP].3.70, \[Prefix IP].4.167, dan \[Prefix IP].4.168. <b>hint: (fixed in dulu clinetnya)</b>
 
 
-## No 13
->Karena para petualang kehabisan uang, mereka kembali bekerja untuk mengatur riegel.canyon.yyy.com.<br>
+## No 13 dan 14
+>13. Karena para petualang kehabisan uang, mereka kembali bekerja untuk mengatur riegel.canyon.yyy.com.<br>
 >Semua data yang diperlukan, diatur pada Denken dan harus dapat diakses oleh Frieren, Flamme, dan Fern.
-
-
-## No 14
->Frieren, Flamme, dan Fern memiliki Riegel Channel sesuai dengan [quest guide berikut](https://github.com/martuafernando/laravel-praktikum-jarkom). Jangan lupa melakukan instalasi PHP8.0 dan Composer 
-
+>14. Frieren, Flamme, dan Fern memiliki Riegel Channel sesuai dengan [quest guide berikut](https://github.com/martuafernando/laravel-praktikum-jarkom). Jangan lupa melakukan instalasi PHP8.0 dan Composer
+Pada `setup.sh` pada setiap laravel worker:
+```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+apt-get update
+apt-get install mariadb-client -y
+apt-get install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get update
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get install nginx -y
+apt-get install git -y
+wget https://getcomposer.org/download/2.0.13/composer.phar
+chmod +x composer.phar
+mv composer.phar /usr/bin/composer
+composer -V
+cp laravel /etc/nginx/sites-available/
+```
+Jalankan file `setup.sh` dan jalankan perintah-perintah berikut
+```
+cd /var/www
+git clone https://github.com/martuafernando/laravel-praktikum-jarkom.git
+cd /var/www/laravel-praktikum-jarkom
+composer update
+cd ~
+cp after-env.sh /var/www/laravel-praktikum-jarkom/after-env.sh
+cd /var/www/laravel-praktikum-jarkom
+cp .env.example .env
+(( setting .env ))
+bash after-env.sh
+```
+Konfigurasi `after-env.sh`
+```
+php artisan migrate:fresh
+php artisan db:seed --class=AiringsTableSeeder
+php artisan key:generate
+php artisan jwt:secret
+service php8.0-fpm start
+service nginx restart
+```
+Lalu jalankan `after-env.sh` di directory `/var/www/laravel-praktikum-jarkom`
+```
+ln -s /etc/nginx/sites-available/laravel /etc/nginx/sites-enabled/
+chown -R www-data.www-data /var/www/laravel-praktikum-jarkom/storage
+```
+Dan untuk melihat database di worker, tambahkan script berikut di worker
+```
+mariadb --host=10.56.2.1 --port=3306 --user=kelompokf09 --password
+```
 
 ## No 15
 >Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire. <b>POST /auth/register</b>
 
+Sebelum memulai nomer 15, 16, dan 17, lakukan instalasi jq terlebih dahulu
+```
+apt-get install jq
+```
+
+Lalu untuk nomor 15 lakukan command berikut dari sisi client `Revolte`
+```
+ab -n 100 -c 10 -T 'application/json' -p register.json -g register.data http://10.56.4.1:8001/api/auth/register
+curl -X POST -H "Content-Type: application/json" -d '{"username": "nauff1", "password": "password1"}' http://10.56.4.2:8002/api/auth/register
+```
 
 ## No 16
 >Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire. <b>POST /auth/login</b>
 
+Setelah install jq di nomor 15, lakukan command berikut dari sisi client `Revolte` juga
+```
+ab -n 100 -c 10 -T 'application/json' -p login.json -g login.data http://10.56.4.1:8002/api/auth/login
+curl -X POST -H "Content-Type: application/json" -d '{"username": "kelompokf09", "password": "passwordf09"}' http://10.56.4.2:8002/api/auth/login
+curl -X POST -H "Content-Type: application/json" -d '{"username": "kelompokf09", "password": "passwordf09"}' http://10.56.4.2:8002/api/auth/login | jq -r '.token' > token.txt
+```
 
 ## No 17
 >Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire. <b>GET /me</b>
 
+Lakukan set token secara global
+```
+token=$(cat token.txt); ab -n 100 -c 10 -H "Authorization: Bearer $token" http://10.56.4.2:8002/api/me
+```
+Lalu testing dengan perintah berikut
+```
+token=$(cat token.txt); curl -H "Authorization: Bearer $token" http://10.56.4.2:8002/api/me
+```
 
 ## No 18
 >Untuk memastikan ketiganya bekerja sama secara adil untuk mengatur Riegel Channel maka implementasikan Proxy Bind pada Eisen untuk mengaitkan IP dari Frieren, Flamme, dan Fern.
 
+Implementasi `load balancing` dengan mengonfigurasi `nginx`
+```
+upstream myweb  {
+        server 10.56.4.1:8001;
+        server 10.56.4.2:8002;
+        server 10.56.4.3:8003;
+ }
+
+ server {
+        listen 80;
+        server_name riegel.canyon.f09.com;
+
+        location / {
+        proxy_bind 10.56.2.2;
+        proxy_pass http://mynode;
+        }
+ }
+
+
+cp lb-laravel /etc/nginx/sites-available/
+
+ln -s /etc/nginx/sites-available/lb-laravel /etc/nginx/sites-enabled/
+```
 
 ## No 19
 >Untuk meningkatkan performa dari Worker, coba implementasikan PHP-FPM pada Frieren, Flamme, dan Fern. Untuk testing kinerja naikkan<br>
@@ -117,7 +209,33 @@ d. Analisis
 >- pm.max_spare_servers<br>
 >sebanyak tiga percobaan dan lakukan testing sebanyak 100 request dengan 10 request/second kemudian berikan hasil analisisnya pada Grimoire.
 
+Lakukan konfigurasi pada masing-masing worker terhadap proses `package manager` untuk testing
+```
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3
+```
+Lalu cek di client dengan script
+```
+ab -n 100 -c 10 -T 'application/json' -p register.json -g register.data http://riegel.canyon.f09.com/api/auth/register
+```
 
 ## No 20
 >Nampaknya hanya menggunakan PHP-FPM tidak cukup untuk meningkatkan performa dari worker maka implementasikan Least-Conn pada Eisen. Untuk testing kinerja dari worker tersebut dilakukan sebanyak 100 request dengan 10 request/second
 
+Tambahkan `least_conn;` di atas server 192.xxxxxxxx seperti soal php
+```
+ab -n 100 -c 10 -T 'application/json' -p register.json -g register.data http://riegel.canyon.f09.com/api/auth/register
+```
