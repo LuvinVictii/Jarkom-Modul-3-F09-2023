@@ -27,29 +27,41 @@
 ## No 0
 >Setelah mengalahkan Demon King, perjalanan berlanjut. Kali ini, kalian diminta untuk melakukan register domain berupa riegel.canyon.yyy.com untuk worker Laravel dan granz.channel.yyy.com untuk worker PHP mengarah pada worker yang memiliki IP \[prefix IP].x.1.
 
+Script:
 
-## No 1
->Lakukan konfigurasi sesuai dengan peta yang sudah diberikan.
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/e26f3a30-318d-4b38-aea7-6b6490db2574)
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/0ec50bec-4744-4ea6-bf12-9288977b1c2b)
 
+Running:
 
-## No 2
->Client yang melalui Switch3 mendapatkan range IP dari \[prefix IP].3.16 - \[prefix IP].3.32 dan \[prefix IP].3.64 - \[prefix IP].3.80
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/5f5d82ff-0213-4e09-91e5-657d0fef2bf7)
 
+## No 1-5
+>1. Lakukan konfigurasi sesuai dengan peta yang sudah diberikan.
+>2. Client yang melalui Switch3 mendapatkan range IP dari \[prefix IP].3.16 - \[prefix IP].3.32 dan \[prefix IP].3.64 - \[prefix IP].3.80
+>3. Client yang melalui Switch4 mendapatkan range IP dari \[prefix IP].4.12 - \[prefix IP].4.20 dan \[prefix IP].4.160 - \[prefix IP].4.168
+>4. Client mendapatkan DNS dari Heiter dan dapat terhubung dengan internet melalui DNS tersebut
+>5. Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit
 
-## No 3
->Client yang melalui Switch4 mendapatkan range IP dari \[prefix IP].4.12 - \[prefix IP].4.20 dan \[prefix IP].4.160 - \[prefix IP].4.168
+Script:
 
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/46f84b31-1fb1-419e-b08a-6d859642caf4)
 
-## No 4
->Client mendapatkan DNS dari Heiter dan dapat terhubung dengan internet melalui DNS tersebut
-
-
-## No 5
->Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit
+Setelah di cat /etc/resolv.conf di client: 
+ 
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/4599c8ca-fa47-4930-a1f3-246abe396da8)
 
 
 ## No 6
 >Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website [berikut](https://drive.google.com/file/d/1ViSkRq7SmwZgdK64eRbr5Fm1EGCTPrU1/view?usp=sharing) dengan menggunakan php 7.3.
+
+Konfigurasi `setup.sh` di tiap worker
+
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/eba69d98-1e25-40cb-bf09-1360b77c14bf)
+
+Running:
+
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/0dbeae55-9930-4c6b-a675-9a2b7338b491)
 
 
 ## No 7
@@ -59,22 +71,44 @@ b. Linie, 2GB, 2vCPU, dan 50 GB SSD.<br>
 c. Lugner 1GB, 1vCPU, dan 25 GB SSD.<br>
 aturlah agar Eisen dapat bekerja dengan maksimal, lalu lakukan testing dengan 1000 request dan 100 request/second.
 
+Script:
+```
+ab -n 1000 -c 100 -g nomer7.data http://granz.channel.f09.com/
+```
 
-## No 8
->Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:<br>
+Hasil:
+
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/a13b751a-bc24-4e64-b650-e6838cc31d2b)
+
+## No 8 dan 9
+>8. Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:<br>
 a. Nama Algoritma Load Balancer<br>
 b. Report hasil testing pada Apache Benchmark<br>
 c. Grafik request per second untuk masing masing algoritma.<br> 
 d. Analisis
+>9. Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire.
 
-
-## No 9
->Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire.
-
+Nomor 8 dan 9 terdapat pada laporan grimoire<br>
+[Laporan grimoire](https://www.canva.com/design/DAF0VE_jlJE/HY5cA2lW_V0-azrFEEcAiQ/edit?utm_content=DAF0VE_jlJE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ## No 10
 >Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
 
+Arahkan domain ke load balancer
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/28387efe-d79e-4517-bc99-2378bb4fc55a)
+
+Saat melakukan lynx, terjadi alert
+
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/44b1b167-5bed-4774-92ae-301bf5b37b2e)
+
+Lalu diminta untuk memasukkan username dan password
+
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/ccbc88a9-c1cb-4dbe-857b-223dda7e5964)
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/0208d0e8-bda1-4102-9627-e78d8ff66a84)
+
+Kemudian keluar halaman dan hasilnya:
+
+![image](https://github.com/LuvinVictii/Jarkom-Modul-3-F09-2023/assets/78089862/015b94db-2bff-4678-b4ef-ff8cc77922e5)
 
 ## No 11
 >Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman [its](https://www.its.ac.id). <b>hint: (proxy_pass)</b>
